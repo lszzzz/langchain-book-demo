@@ -22,5 +22,5 @@ chat_prompt = ChatPromptTemplate.from_messages([
 
 if __name__ == "__main__":
     chain = chat_prompt | ChatDeepSeek(model="deepseek-chat") | CommaSeparatedListOutputParser()
-    print(chain.invoke({"text": "动物"}))
+    print(chain.invoke({"text": "小动物"}))
     # 输出：['狗,猫,鸟,鱼,兔子']

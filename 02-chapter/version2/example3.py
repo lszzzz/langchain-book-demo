@@ -11,6 +11,7 @@ class CommaSeparatedListOutputParser(BaseOutputParser):
     """将LLMs输出解析为逗号分隔的列表"""
 
     def parse(self, text: str):
+        print("text:{}".format(text))
         """解析LLMs调用的输出"""
         return text.strip().split(",")
 
