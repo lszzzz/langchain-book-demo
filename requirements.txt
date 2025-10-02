@@ -23,7 +23,7 @@ idna==3.7
 jsonpatch==1.33
 jsonpointer==2.4
 langchain==0.3.27
-langchain-cli==0.0.16
+langchain-cli==0.0.37
 langserve==0.3.0
 langsmith==0.4.21
 markdown-it-py==3.0.0

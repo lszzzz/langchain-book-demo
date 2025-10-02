@@ -27,4 +27,6 @@ parent_builder.add_edge(START, "sub_process")
 parent_builder.add_edge("sub_process", END)
 parent_graph = parent_builder.compile()
 
+result = parent_graph.invoke({"shared_data": "shared", "parent_data": 10})
+print(result)
 print(parent_graph.get_graph().draw_mermaid())

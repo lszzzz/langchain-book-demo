@@ -1,4 +1,6 @@
 # 导入langchain库中的相关模块
+import time
+
 from langchain_core.tools import tool
 from langchain_deepseek import ChatDeepSeek
 from langgraph.prebuilt import create_react_agent
@@ -26,8 +28,11 @@ langgraph_agent_executor = create_react_agent(model, tools)
 # 主函数
 if __name__ == "__main__":
     query = "‘如何用LangChain实现一个代理’这句话共包含几个不同的汉字"
+    start_time = time.time()
     messages = langgraph_agent_executor.invoke({"messages": [("human", query)]})
     print(messages["messages"][-1].content)
+    print(f"Time taken: {time.time() - start_time} seconds")
+    start_time = time.time()
     messages2 = langgraph_agent_executor.invoke({"messages": messages["messages"]+[("human", "")]})
     print(messages2["messages"][-1].content)
-
+    print(f"Time taken: {time.time() - start_time} seconds")
