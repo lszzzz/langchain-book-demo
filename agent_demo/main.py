@@ -1,6 +1,7 @@
 # main.py
 
 from fastapi import FastAPI
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import os
@@ -30,10 +31,9 @@ async def chat_endpoint(request: ChatRequest):
     接收用户输入，调用 LangGraph 工作流，返回 AI 响应
     """
     # 调用 LangGraph 工作流
-    result = await agent.ainvoke({
-        "user_input": request.user_input,
-        "messages": []
-    })
+    result = await agent.ainvoke(
+        input={"messages": [HumanMessage(content=request.user_input)]},
+    )
 
     # 提取 AI 的响应
     ai_message = result["messages"][-1]  # 最后一条是 AI 的回复

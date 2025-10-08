@@ -1,5 +1,6 @@
 # workflow.py
 from langchain_deepseek import ChatDeepSeek
+from langgraph.constants import START
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Annotated
 import operator
@@ -8,8 +9,7 @@ from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
 
 # 定义状态
 class AgentState(TypedDict):
-    messages: Annotated[list[AnyMessage], operator.add]
-    user_input: str
+    messages: Annotated[list[AnyMessage], operator.add]\
 
 
 # 定义节点函数
@@ -30,12 +30,12 @@ async def generate_response(state: AgentState):
     return {"messages": [response]}
 
 
-async def user_input_node(state: AgentState):
-    """
-    处理用户输入，可以在这里做预处理
-    """
-    user_msg = HumanMessage(content=state["user_input"])
-    return {"messages": [user_msg]}
+# async def user_input_node(state: AgentState):
+#     """
+#     处理用户输入，可以在这里做预处理
+#     """
+#     user_msg = HumanMessage(content=state["user_input"])
+#     return {"messages": [user_msg]}
 
 
 # 构建图
@@ -43,14 +43,14 @@ def create_agent():
     workflow = StateGraph(AgentState)
 
     # 添加节点
-    workflow.add_node("user_input", user_input_node)
+    # workflow.add_node("user_input", user_input_node)
     workflow.add_node("generate", generate_response)
 
     # 设置入口节点
-    workflow.set_entry_point("user_input")
+    # workflow.set_entry_point("user_input")
 
     # 定义边：从 user_input 到 generate，然后到 END
-    workflow.add_edge("user_input", "generate")
+    workflow.add_edge(START, "generate")
     workflow.add_edge("generate", END)
 
     # 编译图
