@@ -1,9 +1,10 @@
 # main.py
+import uuid
 
 from fastapi import FastAPI
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import os
 from workflow import agent
 
@@ -13,6 +14,7 @@ app = FastAPI(title="LangGraph + FastAPI 示例")
 # 请求和响应模型
 class ChatRequest(BaseModel):
     user_input: str
+    thread_id: Optional[str] = None
 
 
 class Message(BaseModel):
@@ -21,6 +23,7 @@ class Message(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    thread_id: str
     response: str
     messages: List[Message]
 
@@ -30,9 +33,13 @@ async def chat_endpoint(request: ChatRequest):
     """
     接收用户输入，调用 LangGraph 工作流，返回 AI 响应
     """
+    thread_id = request.thread_id or str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+
     # 调用 LangGraph 工作流
     result = await agent.ainvoke(
         input={"messages": [HumanMessage(content=request.user_input)]},
+        config=config,
     )
 
     # 提取 AI 的响应
@@ -47,6 +54,7 @@ async def chat_endpoint(request: ChatRequest):
         message_history.append(Message(role=role, content=content))
 
     return ChatResponse(
+        thread_id=thread_id,
         response=response_text,
         messages=message_history
     )

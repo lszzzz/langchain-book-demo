@@ -1,5 +1,6 @@
 # workflow.py
 from langchain_deepseek import ChatDeepSeek
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.constants import START
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Annotated
@@ -53,8 +54,10 @@ def create_agent():
     workflow.add_edge(START, "generate")
     workflow.add_edge("generate", END)
 
+    memory = InMemorySaver()
+
     # 编译图
-    app = workflow.compile()
+    app = workflow.compile(checkpointer=memory)
     return app
 
 
