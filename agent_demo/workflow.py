@@ -13,7 +13,7 @@ class AgentState(TypedDict):
 
 
 # 定义节点函数
-def generate_response(state: AgentState):
+async def generate_response(state: AgentState):
     """
     调用 LLM 生成响应
     """
@@ -24,13 +24,13 @@ def generate_response(state: AgentState):
     #                SystemMessage(content="你是一个友好的AI助手，请用中文回答。"),
     #            ] + state["messages"]
 
-    response = model.invoke(state["messages"])
+    response = await model.ainvoke(state["messages"])
 
     # 将 AI 的回复添加到消息历史
     return {"messages": [response]}
 
 
-def user_input_node(state: AgentState):
+async def user_input_node(state: AgentState):
     """
     处理用户输入，可以在这里做预处理
     """
