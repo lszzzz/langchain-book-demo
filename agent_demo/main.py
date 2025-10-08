@@ -1,14 +1,14 @@
 # main.py
 import uuid
-
 from fastapi import FastAPI
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-import os
-from workflow import agent
 
-app = FastAPI(title="LangGraph + FastAPI 示例")
+from agent_demo.agent_support import agent_supporter
+from workflow import lifespan_context
+
+app = FastAPI(title="LangGraph + FastAPI 示例", lifespan=lifespan_context)
 
 
 # 请求和响应模型
@@ -37,7 +37,7 @@ async def chat_endpoint(request: ChatRequest):
     config = {"configurable": {"thread_id": thread_id}}
 
     # 调用 LangGraph 工作流
-    result = await agent.ainvoke(
+    result = await agent_supporter.get_agent().ainvoke(
         input={"messages": [HumanMessage(content=request.user_input)]},
         config=config,
     )

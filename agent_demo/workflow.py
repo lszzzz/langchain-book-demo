@@ -1,16 +1,19 @@
 # workflow.py
+from contextlib import asynccontextmanager
+
 from langchain_deepseek import ChatDeepSeek
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.constants import START
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Annotated
 import operator
 from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from agent_demo.agent_support import agent_supporter
 
 
 # 定义状态
 class AgentState(TypedDict):
-    messages: Annotated[list[AnyMessage], operator.add]\
+    messages: Annotated[list[AnyMessage], operator.add]
 
 
 # 定义节点函数
@@ -19,47 +22,36 @@ async def generate_response(state: AgentState):
     调用 LLM 生成响应
     """
     model = ChatDeepSeek(model="deepseek-chat")
-
-    # 构建消息列表，可以包含系统提示
-    # messages = [
-    #                SystemMessage(content="你是一个友好的AI助手，请用中文回答。"),
-    #            ] + state["messages"]
-
     response = await model.ainvoke(state["messages"])
 
     # 将 AI 的回复添加到消息历史
     return {"messages": [response]}
 
 
-# async def user_input_node(state: AgentState):
-#     """
-#     处理用户输入，可以在这里做预处理
-#     """
-#     user_msg = HumanMessage(content=state["user_input"])
-#     return {"messages": [user_msg]}
+@asynccontextmanager
+async def lifespan_context(app):
+    # 1. 使用 PostgresSaver.from_conn_string 作为上下文管理器
+    connection_string = "postgresql://postgres:difyai123456@localhost:5432/postgres?sslmode=disable"
 
+    async with AsyncPostgresSaver.from_conn_string(connection_string) as saver:
+        # 2. 确保表存在
+        await saver.setup()
 
-# 构建图
-def create_agent():
-    workflow = StateGraph(AgentState)
+        # 3. 构建图
+        workflow = StateGraph(AgentState)
+        workflow.add_node("generate", generate_response)
+        workflow.add_edge(START, "generate")
+        workflow.add_edge("generate", END)
 
-    # 添加节点
-    # workflow.add_node("user_input", user_input_node)
-    workflow.add_node("generate", generate_response)
+        # 4. 编译图
+        app = workflow.compile(checkpointer=saver)
+        agent_supporter.init_agent(app)
 
-    # 设置入口节点
-    # workflow.set_entry_point("user_input")
+        print("✅ Agent and PostgresSaver initialized.")
 
-    # 定义边：从 user_input 到 generate，然后到 END
-    workflow.add_edge(START, "generate")
-    workflow.add_edge("generate", END)
+        # 在这里 yield，让 FastAPI 应用运行
+        yield
 
-    memory = InMemorySaver()
+        # 当应用关闭时，会回到这里，退出 with 块会自动清理连接
+        print("🔌 PostgresSaver cleaned up.")
 
-    # 编译图
-    app = workflow.compile(checkpointer=memory)
-    return app
-
-
-# 创建可调用的工作流实例
-agent = create_agent()
