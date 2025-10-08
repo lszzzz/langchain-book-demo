@@ -20,11 +20,11 @@ def generate_response(state: AgentState):
     model = ChatDeepSeek(model="deepseek-chat")
 
     # 构建消息列表，可以包含系统提示
-    messages = [
-                   SystemMessage(content="你是一个友好的AI助手，请用中文回答。"),
-               ] + state["messages"]
+    # messages = [
+    #                SystemMessage(content="你是一个友好的AI助手，请用中文回答。"),
+    #            ] + state["messages"]
 
-    response = model.invoke(messages)
+    response = model.invoke(state["messages"])
 
     # 将 AI 的回复添加到消息历史
     return {"messages": [response]}

@@ -42,11 +42,8 @@ async def chat_endpoint(request: ChatRequest):
     # 转换消息历史为 API 响应格式
     message_history = []
     for msg in result["messages"]:
-        role = "assistant" if isinstance(msg, type(ai_message)) else msg.type
-        if role == "human":  # 如果是用户输入，使用 request.user_input
-            content = request.user_input
-        else:
-            content = msg.content
+        role = msg.type
+        content = msg.content
         message_history.append(Message(role=role, content=content))
 
     return ChatResponse(
