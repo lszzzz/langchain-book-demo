@@ -60,6 +60,30 @@ async def chat_endpoint(request: ChatRequest):
     )
 
 
+@app.post("/chat_stream", response_model=ChatResponse)
+async def chat_stream_endpoint(request: ChatRequest):
+    """
+    接收用户输入，调用 LangGraph 工作流，返回 AI 响应
+    """
+    thread_id = request.thread_id or str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+
+    # 调用 LangGraph 工作流
+    async for message_chunk, metadata in agent_supporter.get_agent().astream(
+        input={"messages": [HumanMessage(content=request.user_input)]},
+        config=config,
+        stream_mode="messages",
+    ):
+        if message_chunk.content:
+            print(message_chunk.content, end="|", flush=True)
+
+    return ChatResponse(
+        thread_id=thread_id,
+        response="",
+        messages=[]
+    )
+
+
 @app.get("/")
 async def root():
     return {"message": "LangGraph + FastAPI 服务已启动！访问 /docs 查看 API 文档。"}
