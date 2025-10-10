@@ -1,9 +1,15 @@
 # main.py
+import json
+import logging
+import traceback
 import uuid
 from fastapi import FastAPI
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
+
+from sse_starlette import EventSourceResponse
+from starlette import status
 
 from agent_demo.agent_support import agent_supporter
 from workflow import lifespan_context
@@ -60,7 +66,23 @@ async def chat_endpoint(request: ChatRequest):
     )
 
 
-@app.post("/chat_stream", response_model=ChatResponse)
+run_event = Literal["agent_message", "message_end", "error", "new_conversation"]
+
+
+class RunStreamResponse(BaseModel):
+    event: str = run_event
+    conversation_id: Optional[str] = None
+    message_id: Optional[str] = None
+    answer: str = ""
+    task_id: Optional[str] = None
+    created_at: Optional[int] = None
+    metadata: Optional[Any] = None
+    usage_metadata: Optional[Any] = None
+    code: Optional[int] = 0
+    message: Optional[str] = None
+
+
+@app.post("/chat_stream", status_code=status.HTTP_200_OK, response_model_exclude_none=True)
 async def chat_stream_endpoint(request: ChatRequest):
     """
     接收用户输入，调用 LangGraph 工作流，返回 AI 响应
@@ -68,20 +90,34 @@ async def chat_stream_endpoint(request: ChatRequest):
     thread_id = request.thread_id or str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
 
-    # 调用 LangGraph 工作流
-    async for message_chunk, metadata in agent_supporter.get_agent().astream(
-        input={"messages": [HumanMessage(content=request.user_input)]},
-        config=config,
-        stream_mode="messages",
-    ):
-        if message_chunk.content:
-            print(message_chunk.content, end="|", flush=True)
+    async def event_generator():
+        try:
+            # 调用 LangGraph 工作流
+            async for message_chunk, metadata in agent_supporter.get_agent().astream(
+                    input={"messages": [HumanMessage(content=request.user_input)]},
+                    config=config,
+                    stream_mode="messages",
+            ):
+                if message_chunk.content:
+                    resp = RunStreamResponse(
+                        event="agent_message",
+                        answer=message_chunk.content
+                    )
 
-    return ChatResponse(
-        thread_id=thread_id,
-        response="",
-        messages=[]
-    )
+                    result = resp.model_dump_json()
+                    yield result
+                    logging.info(f"web chat stream send: {result}")
+
+        except Exception as e:
+            logging.error("run/stream exception:{}".format(traceback.format_exc()))
+            data = json.dumps({
+                "event": "error",
+                "code": 99999,
+                "message": "system error"
+            })
+            yield data
+
+    return EventSourceResponse(event_generator())
 
 
 @app.get("/")
