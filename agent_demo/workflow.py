@@ -30,24 +30,24 @@ async def generate_response(state: AgentState):
 
 @asynccontextmanager
 async def lifespan_context(app):
-    # 1. 使用 PostgresSaver.from_conn_string 作为上下文管理器
+    # 使用 PostgresSaver.from_conn_string 作为上下文管理器
     connection_string = "postgresql://postgres:difyai123456@localhost:5432/postgres?sslmode=disable"
 
     async with AsyncPostgresSaver.from_conn_string(connection_string) as saver:
-        # 2. 确保表存在
+        # 确保表存在
         await saver.setup()
+        print("✅ PostgresSaver initialized.")
 
-        # 3. 构建图
+        # 构建图workflow
         workflow = StateGraph(AgentState)
         workflow.add_node("generate", generate_response)
         workflow.add_edge(START, "generate")
         workflow.add_edge("generate", END)
 
-        # 4. 编译图
-        app = workflow.compile(checkpointer=saver)
-        agent_supporter.init_agent(app)
+        agent1 = workflow.compile(checkpointer=saver)
+        agent_supporter.init_agent(agent1)
 
-        print("✅ Agent and PostgresSaver initialized.")
+        print("✅ Agent1 initialized.")
 
         # 在这里 yield，让 FastAPI 应用运行
         yield
