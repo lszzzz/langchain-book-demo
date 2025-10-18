@@ -10,3 +10,6 @@ class WorkflowBase(ABC):
     @abstractmethod
     def compile(self, checkpointer) -> StateGraph:
         raise NotImplementedError
+
+    def get_graph(self):
+        return self.graph

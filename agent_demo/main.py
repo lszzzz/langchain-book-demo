@@ -11,8 +11,8 @@ from typing import List, Dict, Any, Optional, Literal
 from sse_starlette import EventSourceResponse
 from starlette import status
 
-from agent_demo.agent_support import agent_supporter
 from agent_demo.workflow.chat_demo import chat_demo_workflow
+from agent_demo.workflow.chat_tools_demo import chat_tools_demo_workflow
 from workflow_context import lifespan_context
 
 app = FastAPI(title="LangGraph + FastAPI 示例", lifespan=lifespan_context)
@@ -94,7 +94,7 @@ async def chat_stream_endpoint(request: ChatRequest):
     async def event_generator():
         try:
             # 调用 LangGraph 工作流
-            async for message_chunk, metadata in agent_supporter.get_agent().astream(
+            async for message_chunk, metadata in chat_demo_workflow.get_graph().astream(
                     input={"messages": [HumanMessage(content=request.user_input)]},
                     config=config,
                     stream_mode="messages",
@@ -131,7 +131,7 @@ async def chat_tools_endpoint(request: ChatRequest):
     config = {"configurable": {"thread_id": thread_id}}
 
     # 调用 LangGraph 工作流
-    result = await agent_supporter.get_agent2().ainvoke(
+    result = await chat_tools_demo_workflow.get_graph().ainvoke(
         input={"messages": [HumanMessage(content=request.user_input)]},
         config=config,
     )

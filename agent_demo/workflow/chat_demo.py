@@ -36,8 +36,5 @@ class ChatDemo(WorkflowBase):
         workflow.add_edge("generate", END)
         self.graph = workflow.compile(checkpointer)
 
-    def get_graph(self):
-        return self.graph
-
 
 chat_demo_workflow = ChatDemo()
