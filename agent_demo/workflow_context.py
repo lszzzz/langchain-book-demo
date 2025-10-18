@@ -20,7 +20,7 @@ async def lifespan_context(app):
         print("✅ chat_demo_workflow initialized.")
 
         chat_tools_demo_workflow.compile(checkpointer=saver)
-        print("✅ Agent2 initialized.")
+        print("✅ chat_tools_demo_workflow initialized.")
 
         # 在这里 yield，让 FastAPI 应用运行
         yield
