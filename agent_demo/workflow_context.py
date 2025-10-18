@@ -11,6 +11,7 @@ from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
 from langgraph.prebuilt import ToolNode
 
 from agent_demo.agent_support import agent_supporter
+from agent_demo.workflow.chat_demo import chat_demo_workflow
 
 
 # 定义状态
@@ -70,7 +71,8 @@ async def lifespan_context(app):
         await saver.setup()
         print("✅ PostgresSaver initialized.")
 
-        # 构建agent1
+        # 构建chat_demo_agent
+        # chat_demo_workflow.compile(checkpointer=saver)
         workflow = StateGraph(AgentState)
         workflow.add_node("generate", generate_response)
         workflow.add_edge(START, "generate")

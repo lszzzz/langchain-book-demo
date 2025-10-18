@@ -12,7 +12,8 @@ from sse_starlette import EventSourceResponse
 from starlette import status
 
 from agent_demo.agent_support import agent_supporter
-from workflow import lifespan_context
+from agent_demo.workflow.chat_demo import chat_demo_workflow
+from workflow_context import lifespan_context
 
 app = FastAPI(title="LangGraph + FastAPI 示例", lifespan=lifespan_context)
 
@@ -43,6 +44,7 @@ async def chat_endpoint(request: ChatRequest):
     config = {"configurable": {"thread_id": thread_id}}
 
     # 调用 LangGraph 工作流
+    # result = await chat_demo_workflow.get_graph().ainvoke(
     result = await agent_supporter.get_agent().ainvoke(
         input={"messages": [HumanMessage(content=request.user_input)]},
         config=config,
