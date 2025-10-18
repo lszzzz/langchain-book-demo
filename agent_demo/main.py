@@ -44,8 +44,7 @@ async def chat_endpoint(request: ChatRequest):
     config = {"configurable": {"thread_id": thread_id}}
 
     # 调用 LangGraph 工作流
-    # result = await chat_demo_workflow.get_graph().ainvoke(
-    result = await agent_supporter.get_agent().ainvoke(
+    result = await chat_demo_workflow.get_graph().ainvoke(
         input={"messages": [HumanMessage(content=request.user_input)]},
         config=config,
     )

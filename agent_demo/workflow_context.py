@@ -18,18 +18,6 @@ from agent_demo.workflow.chat_demo import chat_demo_workflow
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], operator.add]
 
-''' agent1 '''
-# 定义节点函数
-async def generate_response(state: AgentState):
-    """
-    调用 LLM 生成响应
-    """
-    model = ChatDeepSeek(model="deepseek-chat")
-    response = await model.ainvoke(state["messages"])
-
-    # 将 AI 的回复添加到消息历史
-    return {"messages": [response]}
-
 
 ''' agent2 '''
 def get_weather(location: str):
@@ -72,14 +60,7 @@ async def lifespan_context(app):
         print("✅ PostgresSaver initialized.")
 
         # 构建chat_demo_agent
-        # chat_demo_workflow.compile(checkpointer=saver)
-        workflow = StateGraph(AgentState)
-        workflow.add_node("generate", generate_response)
-        workflow.add_edge(START, "generate")
-        workflow.add_edge("generate", END)
-
-        agent1 = workflow.compile(checkpointer=saver)
-        agent_supporter.init_agent(agent1)
+        chat_demo_workflow.compile(checkpointer=saver)
 
         print("✅ Agent1 initialized.")
 
