@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from agent_demo.workflow.chat_demo import chat_demo_workflow
 from agent_demo.workflow.chat_tools_demo import chat_tools_demo_workflow
+from agent_demo.workflow.rag_chatflow import rag_chatflow
 
 
 @asynccontextmanager
@@ -21,6 +22,9 @@ async def lifespan_context(app):
 
         chat_tools_demo_workflow.compile(checkpointer=saver)
         print("✅ chat_tools_demo_workflow initialized.")
+
+        rag_chatflow.compile(checkpointer=saver)
+        print("✅ rag_chatflow initialized.")
 
         # 在这里 yield，让 FastAPI 应用运行
         yield
