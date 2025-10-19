@@ -128,11 +128,17 @@ async def rag_chatflow_endpoint(request: ChatRequest):
     """
     thread_id = request.thread_id or str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
+    context = {
+        "user_input": request.user_input,
+        "kb_ids": request.kb_ids,
+        "document_ids": request.document_ids,
+    }
 
     # 调用 LangGraph 工作流
     result = await rag_chatflow.get_graph().ainvoke(
         input={"messages": [HumanMessage(content=request.user_input)]},
         config=config,
+        context=context
     )
 
     # 提取 AI 的响应

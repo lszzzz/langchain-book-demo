@@ -35,3 +35,9 @@ class RunStreamResponse(BaseModel):
     usage_metadata: Optional[Any] = None
     code: Optional[int] = 0
     message: Optional[str] = None
+
+
+class ContextSchema(BaseModel):
+    user_input: str
+    kb_ids: Optional[List[str]] = None
+    document_ids: Optional[List[str]] = None
