@@ -2,9 +2,10 @@ import operator
 from typing import TypedDict, Annotated
 
 from langchain_core.messages import AnyMessage
-from langchain_deepseek import ChatDeepSeek
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
+from langchain_community.chat_models import ChatTongyi
+
 
 from agent_demo.workflow.workflow_base import WorkflowBase
 
@@ -17,7 +18,7 @@ async def generate_response(state: AgentState):
     """
     调用 LLM 生成响应
     """
-    model = ChatDeepSeek(model="deepseek-chat")
+    model = ChatTongyi(model="qwen-turbo")
     response = await model.ainvoke(state["messages"])
 
     # 将 AI 的回复添加到消息历史
