@@ -5,35 +5,17 @@ import traceback
 import uuid
 from fastapi import FastAPI
 from langchain_core.messages import HumanMessage
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional, Literal
 
 from sse_starlette import EventSourceResponse
 from starlette import status
 
+from agent_demo.dto.chat_dto import ChatResponse, ChatRequest, Message, RunStreamResponse
 from agent_demo.workflow.chat_demo import chat_demo_workflow
 from agent_demo.workflow.chat_tools_demo import chat_tools_demo_workflow
 from agent_demo.workflow.rag_chatflow import rag_chatflow
 from workflow_context import lifespan_context
 
 app = FastAPI(title="LangGraph + FastAPI 示例", lifespan=lifespan_context)
-
-
-# 请求和响应模型
-class ChatRequest(BaseModel):
-    user_input: str
-    thread_id: Optional[str] = None
-
-
-class Message(BaseModel):
-    role: str
-    content: str
-
-
-class ChatResponse(BaseModel):
-    thread_id: str
-    response: str
-    messages: List[Message]
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -66,22 +48,6 @@ async def chat_endpoint(request: ChatRequest):
         response=response_text,
         messages=message_history
     )
-
-
-run_event = Literal["agent_message", "message_end", "error", "new_conversation"]
-
-
-class RunStreamResponse(BaseModel):
-    event: str = run_event
-    conversation_id: Optional[str] = None
-    message_id: Optional[str] = None
-    answer: str = ""
-    task_id: Optional[str] = None
-    created_at: Optional[int] = None
-    metadata: Optional[Any] = None
-    usage_metadata: Optional[Any] = None
-    code: Optional[int] = 0
-    message: Optional[str] = None
 
 
 @app.post("/chat_stream", status_code=status.HTTP_200_OK, response_model_exclude_none=True)
