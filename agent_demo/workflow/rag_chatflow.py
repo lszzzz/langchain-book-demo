@@ -71,7 +71,7 @@ async def rag_llm(state: AgentState):
 
     json_str = json.dumps(rag_result, ensure_ascii=False, indent=2)
 
-    state["messages"].append(SystemMessage(content=json_str))
+    state["messages"].append(HumanMessage(content=f"参考以下知识库信息回答问题:\n\n{json_str}"))
 
     """
     调用 LLM 生成响应
